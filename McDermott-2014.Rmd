@@ -1,0 +1,43 @@
+---
+title: "Untitled"
+author: "Jaehwan Lim"
+date: "January 17, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(haven)
+library(stargazer)
+
+mating_raw <- read_dta("AJPSReplication.dta")
+
+```
+
+```{r}
+mating_processed <- mating_raw %>% 
+  filter(!is.na(attractive)) %>% 
+  group_by(ideval_n) %>% 
+  mutate(eval_avg = mean(attractive)) %>% 
+  ungroup() %>% 
+  mutate(same_sex = ifelse(MaleTarget == Male, 1, 0), 
+         politicalIdeo = ifelse(politicalIdeo >= 4, 1, 0), 
+         IdeoTarget = ifelse(IdeoTarget >= 4, 1, 0), 
+         same_ideo = ifelse(politicalIdeo == IdeoTarget, 1, 0), 
+         ) 
+
+mod_1 <- lm(attractive ~ same_ideo + same_sex + politicalIdeo + IdeoTarget + Male + MaleTarget + mn_attractive + eval_avg, data = mating_processed)
+  
+summary(mod_1)
+
+stargazer(mod_1, title = "Results")
+
+
+```
+

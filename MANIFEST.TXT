@@ -1,0 +1,2 @@
+AJPSReplication.do (text/x-stata-syntax; charset=US-ASCII) 4300 bytes.
+AJPSReplication.dta (application/x-stata) 82369 bytes.
