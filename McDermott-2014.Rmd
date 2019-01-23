@@ -36,7 +36,7 @@ mod_1 <- lm(attractive ~ same_ideo + same_sex + politicalIdeo + IdeoTarget + Mal
   
 summary(mod_1)
 
-stargazer(mod_1, type = "text")
+stargazer(mod_1, title = "Model 1", type = "text")
 
 
 ```
