@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+author: "Jaehwan Lim"
+date: "January 30, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(gt)
+library(cowplot)
+
+daughters_case <- read_csv("glynn_sen_daughters_by_case_1.csv") %>% 
+  select(-X1)
+
+daughters_judge <- read_csv("glynn_sen_daughters_by_judge.csv") %>% 
+  select(-X1)
+
+  
+```
+

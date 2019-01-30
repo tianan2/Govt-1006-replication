@@ -18,10 +18,39 @@ library(stargazer)
 
 mating_raw <- read_dta("AJPSReplication.dta")
 
+theme_set(theme_light())
 ```
 
 ```{r}
+summary(mating_raw)
+
 mating_processed <- mating_raw %>% 
+  rename(t_ideo = IdeoTarget, 
+         e_ideo = politicalIdeo, 
+         t_gender = MaleTarget, 
+         e_gender = Male) %>% 
+  filter(!is.na(attractive)) 
+
+mating_processed %>% 
+  count(type_n, t_ideo) %>% 
+  ggplot(aes(t_ideo)) + 
+  geom_bar()
+
+mating_raw %>% 
+  ggplot(aes(politicalIdeo)) +
+  geom_histogram()
+
+mating_raw %>% 
+  ggplot(aes(MaleTarget)) + 
+  geom_histogram()
+
+mating_raw %>% 
+  ggplot(aes(Male)) + 
+  geom_histogram()
+
+mating_processed <- mating_raw %>% 
+  rename(t_ideo = IdeoTarget, 
+         e_ideo = politicalIdeo) %>% 
   filter(!is.na(attractive)) %>% 
   group_by(ideval_n) %>% 
   mutate(eval_avg = mean(attractive)) %>% 
@@ -29,8 +58,7 @@ mating_processed <- mating_raw %>%
   mutate(same_sex = ifelse(MaleTarget == Male, 1, 0), 
          politicalIdeo = ifelse(politicalIdeo >= 4, 1, 0), 
          IdeoTarget = ifelse(IdeoTarget >= 4, 1, 0), 
-         same_ideo = ifelse(politicalIdeo == IdeoTarget, 1, 0), 
-         ) 
+         same_ideo = ifelse(politicalIdeo == IdeoTarget, 1, 0)) 
 
 mod_1 <- lm(attractive ~ same_ideo + same_sex + politicalIdeo + IdeoTarget + Male + MaleTarget + mn_attractive + eval_avg, data = mating_processed)
   
@@ -38,6 +66,13 @@ summary(mod_1)
 
 stargazer(mod_1, title = "Model 1", type = "text")
 
+
+```
+
+```{r}
+mating_raw %>% 
+  filter(!is.na(attractive)) %>% 
+  count()
 
 ```
 
