@@ -15,11 +15,35 @@ library(gt)
 library(cowplot)
 
 daughters_case <- read_csv("glynn_sen_daughters_by_case_1.csv") %>% 
-  select(-X1)
+  select(-X1) %>% 
 
 daughters_judge <- read_csv("glynn_sen_daughters_by_judge.csv") %>% 
   select(-X1)
 
-  
 ```
+
+```{r}
+## subsetting the dataset
+daughters_case %>% 
+  count(area, sort = T)
+
+daughters_case_subset <- daughters_case %>%
+  filter(femplaintiff == 1) %>%  
+  filter(area %in% c("employment", "Title IX", "pregnancy", "abortion", "reproductive rights")) 
+  
+daughters_case_subset %>% 
+  count(area, sort = T) %>% 
+  mutate(fraction = n / sum(n))
+
+n_distinct(daughters_case_subset$casename, na.rm = TRUE)
+```
+```{r}
+daughters_case_subset %>% 
+  filter(!is.na(name), !is.na(vote)) %>% 
+  count(circuit, sort = T)
+  count(casename, cite, name, vote, sort = T) %>% 
+  count(name, sort = T)
+  filter(casename == "Garcia v. Woman's Hosp.")
+```
+
 
