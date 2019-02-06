@@ -18,22 +18,22 @@ library(cowplot)
 library(xtable)
 library(reshape)
 
-women_cases <- read_csv("glynn_sen_daughters_by_case_1.csv") %>% select(-X1) 
+women_cases_raw <- read_csv("glynn_sen_daughters_by_case_1.csv") %>% select(-X1) 
 
-judge_means <- read_csv("glynn_sen_daughters_by_judge.csv") %>% select(-X1)
+judge_means_raw <- read_csv("glynn_sen_daughters_by_judge.csv") %>% select(-X1)
 
 ```
 
 ```{r}
 ## subsetting the dataset
 
-women_cases <- women_cases %>%
+women_cases <- women_cases_raw %>%
   filter(femplaintiff == 1) %>%  
   filter(area %in% c("employment", "Title IX", "pregnancy", "abortion", "reproductive rights")) 
 
 women_cases$area <- factor(women_cases$area, levels = c("abortion","employment","pregnancy","reproductive rights","Title IX"))
 
-judge_means <- judge_means %>% 
+judge_means <- judge_means_raw %>% 
   filter(girls != "NaN")
 
 ```
@@ -137,6 +137,36 @@ judge_gender_trans <- judge_gender %>%
 judge_gender_trans <- judge_gender_trans[order(match(judge_gender_trans$var, names(judge_gender))),]
 
 ```
+## figure 1: Distribution of the proportion of cases decided in a feminist direction out of all gender-related cases decide, 1996-2002
 
+```{r}
+# calculating the weights (the number of cases)
+no_cases <- matrix(data = NA, nrow = nrow(judge_means_raw), ncol = 1)
+
+for(i in 1:length(no_cases)){
+	no_cases[i] <- nrow(women_cases[which(women_cases$name == judge_means_raw$name[i]),])
+	}
+
+judge_means <- cbind(judge_means_raw, no_cases)
+
+## total number of cases we are working with
+
+sum(judge_means$no_cases) 	# should be 2,674 reported in the paper
+
+########################################################
+## Calculating the Outcome Var
+########################################################
+
+no_liberalvote <- matrix(data = NA, nrow = nrow(judge.means), ncol = 1)
+for(i in 1:length(no_liberalvote)){
+	stuff <- women.cases[which(women.cases$name == judge.means$name[i]),]
+	no_liberalvote[i] <- nrow(subset(stuff, vote == 2 | vote == 3))
+	}
+
+lib_vote_share <- no_liberalvote/no_cases
+
+judge.means <- cbind(judge.means, no_liberalvote, lib_vote_share)
+judge.means <- subset(judge.means, girls != "NaN")
+```
 
 
