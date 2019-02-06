@@ -2,48 +2,141 @@
 title: "Untitled"
 author: "Jaehwan Lim"
 date: "January 30, 2019"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r message = FALSE}
 library(tidyverse)
 library(gt)
 library(cowplot)
+library(xtable)
+library(reshape)
 
-daughters_case <- read_csv("glynn_sen_daughters_by_case_1.csv") %>% 
-  select(-X1) %>% 
+women_cases <- read_csv("glynn_sen_daughters_by_case_1.csv") %>% select(-X1) 
 
-daughters_judge <- read_csv("glynn_sen_daughters_by_judge.csv") %>% 
-  select(-X1)
+judge_means <- read_csv("glynn_sen_daughters_by_judge.csv") %>% select(-X1)
 
 ```
 
 ```{r}
 ## subsetting the dataset
-daughters_case %>% 
-  count(area, sort = T)
 
-daughters_case_subset <- daughters_case %>%
+women_cases <- women_cases %>%
   filter(femplaintiff == 1) %>%  
   filter(area %in% c("employment", "Title IX", "pregnancy", "abortion", "reproductive rights")) 
-  
-daughters_case_subset %>% 
-  count(area, sort = T) %>% 
-  mutate(fraction = n / sum(n))
 
-n_distinct(daughters_case_subset$casename, na.rm = TRUE)
+women_cases$area <- factor(women_cases$area, levels = c("abortion","employment","pregnancy","reproductive rights","Title IX"))
+
+judge_means <- judge_means %>% 
+  filter(girls != "NaN")
+
 ```
+
 ```{r}
-daughters_case_subset %>% 
-  filter(!is.na(name), !is.na(vote)) %>% 
-  count(circuit, sort = T)
-  count(casename, cite, name, vote, sort = T) %>% 
-  count(name, sort = T)
-  filter(casename == "Garcia v. Woman's Hosp.")
+by_childs <- judge_means %>% 
+  mutate(republican = recode(republican, `0` = "Democrat", 
+                             `1` = "Republican")) %>% 
+  group_by(child) %>%
+  count(republican) %>% 
+  spread(republican, n) 
+
+by_girls <- judge_means %>% 
+  mutate(republican = recode(republican, `0` = "Democrat", 
+                             `1` = "Republican")) %>% 
+  group_by(girls) %>%
+  count(republican) %>% 
+  spread(republican, n) 
+
 ```
+
+## Table 2
+```{r}
+# setup to avoid scientific number notation
+options(scipen=999)
+
+judge_all <- judge_means %>%
+  summarize(mean_childs = mean(child), 
+            mean_girls = mean(girls), 
+            prop_zerochild = mean(child == 0), 
+            child_1 = mean(child == 1), 
+            child_2 = mean(child == 2), 
+            child_3 = mean(child == 3), 
+            child_4 = mean(child == 4), 
+            child_5 = mean(child == 5),
+            child_6 = mean(child >= 6), 
+            prop_female = mean(woman == 1), 
+            prop_republican = mean(republican == 1), 
+            prop_white = mean(race == 1, na.rm = T), 
+            mean_bornyear = mean(yearb, na.rm = T), 
+            N = n())
+
+judge_partisan <- judge_means %>% 
+  mutate(republican = recode(republican, `0` = "Democrat", 
+                             `1` = "Republican")) %>% 
+  group_by(republican) %>%
+  summarize(mean_childs = mean(child), 
+            mean_girls = mean(girls), 
+            prop_zerochild = mean(child == 0), 
+            child_1 = mean(child == 1), 
+            child_2 = mean(child == 2), 
+            child_3 = mean(child == 3), 
+            child_4 = mean(child == 4), 
+            child_5 = mean(child == 5),
+            child_6 = mean(child >= 6), 
+            prop_female = mean(woman == 1), 
+            prop_republican = mean(republican == 1),
+            prop_white = mean(race == 1, na.rm = T), 
+            mean_bornyear = mean(yearb, na.rm = T), 
+            N = n())
+
+judge_gender <- judge_means %>% 
+  mutate(woman = recode(woman, `0` = "Men", 
+                        `1` = "Women")) %>%
+  summarize(mean_childs = mean(child), 
+            mean_girls = mean(girls), 
+            prop_zerochild = mean(child == 0), 
+            child_1 = mean(child == 1), 
+            child_2 = mean(child == 2), 
+            child_3 = mean(child == 3), 
+            child_4 = mean(child == 4), 
+            child_5 = mean(child == 5),
+            child_6 = mean(child >= 6), 
+            prop_female = mean(woman == 1), 
+            prop_republican = mean(republican == 1), 
+            prop_white = mean(race == 1, na.rm = T), 
+            mean_bornyear = mean(yearb, na.rm = T), 
+            N = n())
+
+# transpose the data frame
+
+judge_all_trans <- judge_all %>% 
+  rownames_to_column %>%
+  gather(var, value, -rowname) %>% 
+  spread(rowname, value)
+
+judge_all_trans <- judge_all_trans[order(match(judge_all_trans$var, names(judge_all))),]
+
+judge_partisan_trans <- judge_partisan %>% 
+  rownames_to_column %>%
+  gather(var, value, -rowname) %>% 
+  spread(rowname, value)
+
+judge_partisan_trans <- judge_partisan_trans[order(match(judge_partisan_trans$var, names(judge_partisan))),]
+
+judge_gender_trans <- judge_gender %>% 
+  rownames_to_column %>%
+  gather(var, value, -rowname) %>% 
+  spread(rowname, value)
+
+judge_gender_trans <- judge_gender_trans[order(match(judge_gender_trans$var, names(judge_gender))),]
+
+```
+
 
 
