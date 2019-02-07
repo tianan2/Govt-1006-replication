@@ -157,16 +157,97 @@ sum(judge_means$no_cases) 	# should be 2,674 reported in the paper
 ## Calculating the Outcome Var
 ########################################################
 
-no_liberalvote <- matrix(data = NA, nrow = nrow(judge.means), ncol = 1)
+no_liberalvote <- matrix(data = NA, nrow = nrow(judge_means), ncol = 1)
 for(i in 1:length(no_liberalvote)){
-	stuff <- women.cases[which(women.cases$name == judge.means$name[i]),]
+	stuff <- women_cases[which(women_cases$name == judge_means$name[i]),]
 	no_liberalvote[i] <- nrow(subset(stuff, vote == 2 | vote == 3))
 	}
 
 lib_vote_share <- no_liberalvote/no_cases
 
-judge.means <- cbind(judge.means, no_liberalvote, lib_vote_share)
-judge.means <- subset(judge.means, girls != "NaN")
+judge_means <- cbind(judge_means, no_liberalvote, lib_vote_share)
+judge_means <- subset(judge_means, girls != "NaN")
+
+########################################################
+## Subsetting Data to Various Populations (for use later)
+########################################################
+
+## just women:
+women_means <- subset(judge_means, woman == 1)
+
+## just men:
+men_means <- subset(judge_means, woman == 0)
+
+## just republicans:
+rep_means <- subset(judge_means, republican == 1)
+
+## just democrats
+dem_means <- subset(judge_means, republican == 0)
+
+
+
+#######################################################
+## Figure 1
+########################################################
+
+#pdf(file= "lib_votes.pdf", width = 5, height = 5, family = "Helvetica", pointsize = 10)
+plot(density(judge_means$lib_vote_share), 
+	xlim = c(-.4,1.4), ylim = c(0,2.5),
+	ylab = "", xlab = "Proportion of Cases Decided in a Feminist Direction", 
+	yaxt = "n", 
+	bty = "n", 
+	main = "",
+	col = "black", lwd = 2)
+
+ggplot(judge_means, aes(lib_vote_share)) + 
+  geom_histogram() 
+
+lines(density(rep_means$lib_vote_share), 
+	col = "firebrick", lwd = 2, lty  = 2)
+
+lines(density(dem_means$lib_vote_share), 
+	col = "dodgerblue", lwd = 2, lty  = 3)
+
+abline(v = .5, col = "grey50", lty = 2)
+text(x = .5, y = 2.4, "Less Feminist", col = "grey50", pos = 2, cex = 0.9)
+text(x = .5, y = 2.4, "More Feminist", col = "grey50", pos = 4, cex = 0.9)
+text(x = .25, y = 1.7, "Republicans", pos = 2, cex = 0.9)
+text(x = .7, y = 1, "Democrats", pos = 4, cex = 0.9)
+text(x = .075, y = .6, "All", pos = 4, cex = 0.9)
+#dev.off()
+
+```
+## Model
+
+```{r}
+## what is the merit of transforming into tibble?
+
+judge_means <- as_tibble(judge_means)
+
+glimpse(judge_means)
+summary(judge_means)
+
+
+my.out1 <- lm(lib_vote_share ~ as.factor(girls) + as.factor(child), 
+	data = judge_means, weights = judge_means$no_cases)
+
+summary(my.out1)
+
+my.out2 <- lm(lib_vote_share ~ I(girls>0), 
+	data = judge_means, weights = judge_means$no_cases)
+
+summary(my.out2)
+
+circuit <- lm(lib_vote_share ~ circuit.1, data = judge_means, weights = judge_means$no_cases)
+
+## what else could be the reasonable way of checking the robustness?
+
+my.out3 <- lm(lib_vote_share ~ I(girls>0) + as.factor(child) + republican + age + I(religion == 4) + woman + I(race == 2) + I(race ==3), 
+	data = judge.means, weights = judge.means$no_cases)
+
+my.out4 <- lm(lib_vote_share ~ I(girls>0) + as.factor(child) + republican + age + I(religion == 4) + woman + I(race == 2) + I(race ==3) + as.factor(circuit.1), 
+	data = judge.means, weights = judge.means$no_cases)
+
 ```
 
 
